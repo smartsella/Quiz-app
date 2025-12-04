@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz App</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        padding: 20px;
+      }
+
+      #quiz-container {
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      }
+
+      #question {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      .answer-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        background: #eee;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: left;
+        font-size: 16px;
+        transition: 0.2s;
+      }
+
+      .answer-btn:hover {
+        background: #ddd;
+      }
+
+      .correct {
+        background: #4caf50 !important;
+        color: white;
+      }
+
+      .incorrect {
+        background: #e53935 !important;
+        color: white;
+      }
+
+      #next-btn {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        background: #1976d2;
+        color: white;
+      }
+
+      #next-btn:disabled {
+        background: gray;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="quiz-container">
+      <h2 id="question">Question</h2>
+      <div id="answer-buttons"></div>
+      <button id="next-btn">Next</button>
+    </div>
+
+    <script>
+      // QUIZ QUESTIONS ----------------------------------------------
+      const quizData = [
+        {
+          question: "1. Which keyword declares a constant in JavaScript?",
+          answers: [
+            { text: "let", correct: false },
+            { text: "var", correct: false },
+            { text: "const", correct: true },
+            { text: "static", correct: false },
+          ],
+        },
+        {
+          question:
+            "2. Which method converts JSON string to JavaScript Object?",
+          answers: [
+            { text: "JSON.parse()", correct: true },
+            { text: "JSON.stringify()", correct: false },
+            { text: "JSON.toObject()", correct: false },
+            { text: "parseJSON()", correct: false },
+          ],
+        },
+        {
+          question: "3. Which symbol is used for strict equality comparison?",
+          answers: [
+            { text: "==", correct: false },
+            { text: "===", correct: true },
+            { text: "=", correct: false },
+            { text: "!=", correct: false },
+          ],
+        },
+      ];
+
+      // DOM ELEMENTS ------------------------------------------------
+      const questionEl = document.getElementById("question");
+      const answerButtons = document.getElementById("answer-buttons");
+      const nextButton = document.getElementById("next-btn");
+
+      // STATE VARIABLES
+      let currentQuestionIndex = 0;
+      let score = 0;
+
+      // START QUIZ ---------------------------------------------------
+      function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        nextButton.textContent = "Next";
+        showQuestion();
+      }
+
+      // DISPLAY QUESTION --------------------------------------------
+      function showQuestion() {
+        resetState(); // clear old buttons + disable next
+
+        const currentQ = quizData[currentQuestionIndex];
+        questionEl.textContent = currentQ.question;
+
+        // Create answer buttons
+        currentQ.answers.forEach((answer) => {
+          const btn = document.createElement("button");
+          btn.textContent = answer.text;
+          btn.classList.add("answer-btn");
+
+          // Only correct answers get dataset
+          if (answer.correct) btn.dataset.correct = "true";
+
+          btn.addEventListener("click", selectAnswer);
+          answerButtons.appendChild(btn);
+        });
+      }
+
+      // USER SELECTS AN ANSWER -------------------------------------
+      function selectAnswer(e) {
+        const selected = e.target;
+        const correct = selected.dataset.correct === "true";
+
+        if (correct) {
+          selected.classList.add("correct");
+          score++;
+        } else {
+          selected.classList.add("incorrect");
+        }
+
+        // Show correct answer and disable all buttons
+        Array.from(answerButtons.children).forEach((btn) => {
+          if (btn.dataset.correct === "true") btn.classList.add("correct");
+          btn.disabled = true;
+        });
+
+        nextButton.disabled = false;
+      }
+
+      // NEXT BUTTON EVENT -------------------------------------------
+      nextButton.addEventListener("click", () => {
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < quizData.length) {
+          showQuestion();
+        } else {
+          showScore();
+        }
+      });
+
+      // DISPLAY FINAL SCORE -----------------------------------------
+      function showScore() {
+        resetState();
+
+        questionEl.textContent = `Your Score: ${score} / ${quizData.length}`;
+        nextButton.textContent = "Play Again";
+        nextButton.disabled = false;
+
+        // Fix: remove old event and add startQuiz
+        nextButton.onclick = () => {
+          nextButton.onclick = null; // remove again to avoid stacking
+          startQuiz();
+        };
+      }
+
+      // RESET UI FOR NEXT QUESTION ---------------------------------
+      function resetState() {
+        nextButton.disabled = true;
+        answerButtons.innerHTML = ""; // remove old answer buttons
+      }
+
+      // START INITIAL QUIZ ------------------------------------------
+      startQuiz();
+    </script>
+  </body>
+</html>
